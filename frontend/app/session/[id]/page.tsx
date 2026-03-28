@@ -256,21 +256,39 @@ export default function SessionRoomPage() {
             📋 Copy ID
           </button>
           {session.status === "ACTIVE" && (
-            <button
-              onClick={handleEndSession}
-              style={{
-                background: "rgba(239,68,68,0.15)",
-                border: "1px solid rgba(239,68,68,0.3)",
-                color: "var(--danger)",
-                padding: "6px 14px",
-                borderRadius: "8px",
-                fontSize: "0.8rem",
-                fontWeight: 600,
-                cursor: "pointer",
-              }}
-            >
-              End Session
-            </button>
+            user.role === "MENTOR" ? (
+              <button
+                onClick={handleEndSession}
+                style={{
+                  background: "rgba(239,68,68,0.15)",
+                  border: "1px solid rgba(239,68,68,0.3)",
+                  color: "var(--danger)",
+                  padding: "6px 14px",
+                  borderRadius: "8px",
+                  fontSize: "0.8rem",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                }}
+              >
+                End Session
+              </button>
+            ) : (
+              <button
+                onClick={() => router.push("/dashboard")}
+                style={{
+                  background: "rgba(251,191,36,0.15)",
+                  border: "1px solid rgba(251,191,36,0.3)",
+                  color: "#fbbf24",
+                  padding: "6px 14px",
+                  borderRadius: "8px",
+                  fontSize: "0.8rem",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                }}
+              >
+                Leave Session
+              </button>
+            )
           )}
         </div>
       </header>

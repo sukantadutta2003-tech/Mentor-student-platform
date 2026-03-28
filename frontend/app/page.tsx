@@ -2,8 +2,11 @@
 
 import Link from "next/link";
 import Navbar from "./components/Navbar";
+import { useAuth } from "./context/AuthContext";
 
 export default function LandingPage() {
+  const { user } = useAuth();
+
   return (
     <>
       <Navbar />
@@ -104,16 +107,26 @@ export default function LandingPage() {
                 flexWrap: "wrap",
               }}
             >
-              <Link href="/register">
-                <button className="btn-primary" style={{ fontSize: "1rem", padding: "14px 32px" }}>
-                  🚀 Start Learning
-                </button>
-              </Link>
-              <Link href="/login">
-                <button className="btn-outline" style={{ fontSize: "1rem", padding: "14px 32px" }}>
-                  Sign In →
-                </button>
-              </Link>
+              {user ? (
+                <Link href="/dashboard">
+                  <button className="btn-primary" style={{ fontSize: "1rem", padding: "14px 32px" }}>
+                    📋 Go to Dashboard
+                  </button>
+                </Link>
+              ) : (
+                <>
+                  <Link href="/register">
+                    <button className="btn-primary" style={{ fontSize: "1rem", padding: "14px 32px" }}>
+                      🚀 Start Learning
+                    </button>
+                  </Link>
+                  <Link href="/login">
+                    <button className="btn-outline" style={{ fontSize: "1rem", padding: "14px 32px" }}>
+                      Sign In →
+                    </button>
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </section>
