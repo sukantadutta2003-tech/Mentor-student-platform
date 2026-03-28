@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "../context/AuthContext";
 import { createSession, getMySessions, joinSession, clearHistory } from "../lib/api";
 import Navbar from "../components/Navbar";
+import styles from "./page.module.css";
 
 interface Session {
   id: string;
@@ -98,71 +99,27 @@ export default function DashboardPage() {
   return (
     <>
       <Navbar />
-      <main
-        style={{
-          paddingTop: "76px",
-          maxWidth: "1000px",
-          margin: "0 auto",
-          padding: "76px 24px 60px",
-        }}
-      >
+      <main className={styles.main}>
         {/* Welcome Header */}
-        <div className="animate-fade-in-up" style={{ marginBottom: "40px" }}>
-          <h1 style={{ fontSize: "2rem", fontWeight: 700, marginBottom: "8px" }}>
+        <div className={`${styles.welcome} animate-fade-in-up`}>
+          <h1 className={styles.welcomeTitle}>
             Welcome, <span className="gradient-text">{user.username}</span>
           </h1>
-          <p style={{ color: "var(--text-secondary)", fontSize: "1rem" }}>
+          <p className={styles.welcomeSubtitle}>
             {user.role === "MENTOR"
               ? "Create a session and share the ID with your student."
               : "Join a session using the ID given by your mentor."}
           </p>
         </div>
 
-        {error && (
-          <div
-            style={{
-              padding: "12px 16px",
-              background: "rgba(239,68,68,0.1)",
-              border: "1px solid rgba(239,68,68,0.3)",
-              borderRadius: "10px",
-              color: "var(--danger)",
-              fontSize: "0.9rem",
-              marginBottom: "24px",
-              animation: "fadeIn 0.3s ease-out",
-            }}
-          >
-            {error}
-          </div>
-        )}
+        {error && <div className={styles.errorAlert}>{error}</div>}
 
         {/* Action Cards */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
-            gap: "20px",
-            marginBottom: "48px",
-          }}
-        >
+        <div className={styles.actionGrid}>
           {user.role === "MENTOR" && (
-            <div className="glass-card" style={{ padding: "28px" }}>
-              <h3
-                style={{
-                  fontSize: "1.1rem",
-                  fontWeight: 600,
-                  marginBottom: "12px",
-                }}
-              >
-                Create Session
-              </h3>
-              <p
-                style={{
-                  color: "var(--text-secondary)",
-                  fontSize: "0.9rem",
-                  marginBottom: "20px",
-                  lineHeight: 1.5,
-                }}
-              >
+            <div className={`glass-card ${styles.actionCard}`}>
+              <h3 className={styles.actionCardTitle}>Create Session</h3>
+              <p className={styles.actionCardDesc}>
                 Start a new mentoring session. Share the generated Session ID
                 with your student.
               </p>
@@ -176,28 +133,13 @@ export default function DashboardPage() {
             </div>
           )}
 
-          <div className="glass-card" style={{ padding: "28px" }}>
-            <h3
-              style={{
-                fontSize: "1.1rem",
-                fontWeight: 600,
-                marginBottom: "12px",
-              }}
-            >
-              Join Session
-            </h3>
-            <p
-              style={{
-                color: "var(--text-secondary)",
-                fontSize: "0.9rem",
-                marginBottom: "16px",
-                lineHeight: 1.5,
-              }}
-            >
+          <div className={`glass-card ${styles.actionCard}`}>
+            <h3 className={styles.actionCardTitle}>Join Session</h3>
+            <p className={`${styles.actionCardDesc} ${styles.actionCardDescSmall}`}>
               Enter the Session ID provided by your{" "}
               {user.role === "STUDENT" ? "mentor" : "peer"}.
             </p>
-            <div style={{ display: "flex", gap: "10px" }}>
+            <div className={styles.joinRow}>
               <input
                 className="input-field"
                 placeholder="Paste Session ID"
@@ -219,147 +161,47 @@ export default function DashboardPage() {
 
         {/* Sessions Section with Tabs */}
         <div>
-          {/* Tab Header */}
-          <div
-            style={{
-              display: "flex",
-              gap: "0",
-              marginBottom: "20px",
-              borderBottom: "2px solid var(--border)",
-            }}
-          >
+          <div className={styles.tabHeader}>
             <button
               onClick={() => setActiveTab("active")}
-              style={{
-                padding: "12px 24px",
-                background: "transparent",
-                border: "none",
-                borderBottom:
-                  activeTab === "active"
-                    ? "2px solid var(--accent)"
-                    : "2px solid transparent",
-                color:
-                  activeTab === "active"
-                    ? "var(--text-primary)"
-                    : "var(--text-muted)",
-                fontWeight: 600,
-                fontSize: "0.95rem",
-                cursor: "pointer",
-                transition: "all 0.2s",
-                marginBottom: "-2px",
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-              }}
+              className={`${styles.tabButton} ${activeTab === "active" ? styles.tabButtonActive : ""}`}
             >
-              {activeSessions.length > 0 && (
-                <span
-                  style={{
-                    width: "8px",
-                    height: "8px",
-                    borderRadius: "50%",
-                    background: "var(--success)",
-                    display: "inline-block",
-                  }}
-                />
-              )}
+              {activeSessions.length > 0 && <span className={styles.activeDot} />}
               Active Sessions
               {activeSessions.length > 0 && (
-                <span
-                  style={{
-                    padding: "2px 8px",
-                    background: "rgba(34,197,94,0.15)",
-                    color: "var(--success)",
-                    borderRadius: "10px",
-                    fontSize: "0.75rem",
-                    fontWeight: 700,
-                  }}
-                >
-                  {activeSessions.length}
-                </span>
+                <span className={styles.countBadgeGreen}>{activeSessions.length}</span>
               )}
             </button>
             <button
               onClick={() => setActiveTab("history")}
-              style={{
-                padding: "12px 24px",
-                background: "transparent",
-                border: "none",
-                borderBottom:
-                  activeTab === "history"
-                    ? "2px solid var(--accent)"
-                    : "2px solid transparent",
-                color:
-                  activeTab === "history"
-                    ? "var(--text-primary)"
-                    : "var(--text-muted)",
-                fontWeight: 600,
-                fontSize: "0.95rem",
-                cursor: "pointer",
-                transition: "all 0.2s",
-                marginBottom: "-2px",
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-              }}
+              className={`${styles.tabButton} ${activeTab === "history" ? styles.tabButtonActive : ""}`}
             >
               History
               {completedSessions.length > 0 && (
-                <span
-                  style={{
-                    padding: "2px 8px",
-                    background: "rgba(107,107,138,0.15)",
-                    color: "var(--text-muted)",
-                    borderRadius: "10px",
-                    fontSize: "0.75rem",
-                    fontWeight: 700,
-                  }}
-                >
-                  {completedSessions.length}
-                </span>
+                <span className={styles.countBadgeMuted}>{completedSessions.length}</span>
               )}
             </button>
           </div>
 
           {/* Tab Content */}
           {loadingSessions ? (
-            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+            <div className={styles.skeletonList}>
               {[1, 2, 3].map((i) => (
-                <div
-                  key={i}
-                  className="skeleton"
-                  style={{ height: "72px", borderRadius: "12px" }}
-                />
+                <div key={i} className={`skeleton ${styles.skeletonItem}`} />
               ))}
             </div>
           ) : activeTab === "active" ? (
             activeSessions.length === 0 ? (
-              <div
-                className="glass-card"
-                style={{
-                  padding: "48px",
-                  textAlign: "center",
-                  color: "var(--text-muted)",
-                }}
-              >
-
-                <p style={{ fontSize: "1.05rem", marginBottom: "6px" }}>
-                  No active sessions
-                </p>
-                <p style={{ fontSize: "0.85rem" }}>
+              <div className={`glass-card ${styles.emptyState}`}>
+                <p className={styles.emptyTitle}>No active sessions</p>
+                <p className={styles.emptyDesc}>
                   {user.role === "MENTOR"
                     ? "Create a new session to get started!"
                     : "Ask your mentor for a session ID."}
                 </p>
               </div>
             ) : (
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "10px",
-                }}
-              >
+              <div className={styles.sessionList}>
                 {activeSessions.map((s) => (
                   <SessionCard
                     key={s.id}
@@ -372,54 +214,17 @@ export default function DashboardPage() {
               </div>
             )
           ) : completedSessions.length === 0 ? (
-            <div
-              className="glass-card"
-              style={{
-                padding: "48px",
-                textAlign: "center",
-                color: "var(--text-muted)",
-              }}
-            >
-
-              <p style={{ fontSize: "1.05rem", marginBottom: "6px" }}>
-                No completed sessions yet
-              </p>
-              <p style={{ fontSize: "0.85rem" }}>
-                Completed sessions will appear here.
-              </p>
+            <div className={`glass-card ${styles.emptyState}`}>
+              <p className={styles.emptyTitle}>No completed sessions yet</p>
+              <p className={styles.emptyDesc}>Completed sessions will appear here.</p>
             </div>
           ) : (
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: "10px",
-              }}
-            >
+            <div className={styles.sessionList}>
               {completedSessions.map((s) => (
                 <SessionCard key={s.id} session={s} copiedId={copiedId} onCopy={copySessionId} />
               ))}
-              <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "12px" }}>
-                <button
-                  onClick={handleClearHistory}
-                  style={{
-                    background: "rgba(150,150,170,0.12)",
-                    border: "1px solid rgba(150,150,170,0.2)",
-                    color: "var(--text-muted)",
-                    padding: "5px 12px",
-                    borderRadius: "8px",
-                    fontSize: "0.75rem",
-                    fontWeight: 500,
-                    cursor: "pointer",
-                    transition: "all 0.2s",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = "rgba(150,150,170,0.2)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = "rgba(150,150,170,0.12)";
-                  }}
-                >
+              <div className={styles.clearRow}>
+                <button onClick={handleClearHistory} className={styles.clearButton}>
                   Clear
                 </button>
               </div>
@@ -444,62 +249,35 @@ function SessionCard({
 }) {
   return (
     <div
-      className="glass-card"
-      style={{
-        padding: "18px 20px",
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        cursor: onClick ? "pointer" : "default",
-      }}
+      className={`glass-card ${styles.sessionCard} ${onClick ? styles.sessionCardClickable : ""}`}
       onClick={onClick}
     >
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "4px" }}>
-          <p
-            style={{
-              fontSize: "0.85rem",
-              fontFamily: "monospace",
-              color: "var(--text-secondary)",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-            }}
-          >
-            {session.id}
-          </p>
+      <div className={styles.sessionCardBody}>
+        <div className={styles.sessionIdRow}>
+          <p className={styles.sessionId}>{session.id}</p>
           {session.status === "ACTIVE" && (
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 onCopy(session.id);
               }}
-              style={{
-                background: "transparent",
-                border: "none",
-                color: copiedId === session.id ? "var(--success)" : "var(--text-muted)",
-                cursor: "pointer",
-                fontSize: "0.8rem",
-                padding: "2px 6px",
-                borderRadius: "4px",
-                flexShrink: 0,
-              }}
+              className={`${styles.copyButton} ${
+                copiedId === session.id ? styles.copyCopied : styles.copyDefault
+              }`}
               title="Copy Session ID"
             >
               {copiedId === session.id ? "✓" : "Copy"}
             </button>
           )}
         </div>
-        <div style={{ display: "flex", gap: "12px", fontSize: "0.78rem", color: "var(--text-muted)" }}>
+        <div className={styles.sessionMeta}>
           <span>Started: {new Date(session.startTime).toLocaleString()}</span>
           {session.endTime && (
             <span>Ended: {new Date(session.endTime).toLocaleString()}</span>
           )}
         </div>
       </div>
-      {onClick && (
-        <span style={{ color: "var(--accent)", fontSize: "1.2rem", flexShrink: 0 }}>→</span>
-      )}
+      {onClick && <span className={styles.sessionArrow}>→</span>}
     </div>
   );
 }

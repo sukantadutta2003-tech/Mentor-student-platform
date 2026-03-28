@@ -6,6 +6,7 @@ import Link from "next/link";
 import { login } from "../lib/api";
 import { useAuth } from "../context/AuthContext";
 import Navbar from "../components/Navbar";
+import styles from "../styles/auth.module.css";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -38,64 +39,18 @@ export default function LoginPage() {
   return (
     <>
       <Navbar />
-      <main
-        style={{
-          paddingTop: "52px",
-          minHeight: "100vh",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          padding: "80px 24px",
-        }}
-      >
-        <div
-          className="glass-card animate-fade-in-up"
-          style={{
-            width: "100%",
-            maxWidth: "440px",
-            padding: "40px",
-          }}
-        >
-          <div style={{ textAlign: "center", marginBottom: "32px" }}>
-            <h1
-              style={{ fontSize: "1.8rem", fontWeight: 700, marginBottom: "8px" }}
-            >
-              Welcome Back
-            </h1>
-            <p style={{ color: "var(--text-secondary)", fontSize: "0.95rem" }}>
-              Sign in to your account
-            </p>
+      <main className={styles.authMain}>
+        <div className={`glass-card animate-fade-in-up ${styles.authCard}`}>
+          <div className={styles.authHeader}>
+            <h1 className={styles.authTitle}>Welcome Back</h1>
+            <p className={styles.authSubtitle}>Sign in to your account</p>
           </div>
 
-          {error && (
-            <div
-              style={{
-                padding: "12px 16px",
-                background: "rgba(239,68,68,0.1)",
-                border: "1px solid rgba(239,68,68,0.3)",
-                borderRadius: "10px",
-                color: "var(--danger)",
-                fontSize: "0.9rem",
-                marginBottom: "20px",
-              }}
-            >
-              {error}
-            </div>
-          )}
+          {error && <div className={styles.authError}>{error}</div>}
 
-          <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+          <form onSubmit={handleSubmit} className={styles.authForm}>
             <div>
-              <label
-                style={{
-                  display: "block",
-                  marginBottom: "6px",
-                  fontSize: "0.85rem",
-                  color: "var(--text-secondary)",
-                  fontWeight: 500,
-                }}
-              >
-                Email
-              </label>
+              <label className={styles.label}>Email</label>
               <input
                 type="email"
                 className="input-field"
@@ -106,17 +61,7 @@ export default function LoginPage() {
               />
             </div>
             <div>
-              <label
-                style={{
-                  display: "block",
-                  marginBottom: "6px",
-                  fontSize: "0.85rem",
-                  color: "var(--text-secondary)",
-                  fontWeight: 500,
-                }}
-              >
-                Password
-              </label>
+              <label className={styles.label}>Password</label>
               <input
                 type="password"
                 className="input-field"
@@ -128,32 +73,17 @@ export default function LoginPage() {
             </div>
             <button
               type="submit"
-              className="btn-primary"
+              className={`btn-primary ${styles.submitBtn}`}
               disabled={loading}
-              style={{
-                width: "100%",
-                justifyContent: "center",
-                marginTop: "8px",
-                opacity: loading ? 0.7 : 1,
-              }}
+              style={{ opacity: loading ? 0.7 : 1 }}
             >
               {loading ? "Signing in..." : "Sign In"}
             </button>
           </form>
 
-          <p
-            style={{
-              textAlign: "center",
-              marginTop: "24px",
-              color: "var(--text-secondary)",
-              fontSize: "0.9rem",
-            }}
-          >
+          <p className={styles.authFooter}>
             Don&apos;t have an account?{" "}
-            <Link
-              href="/register"
-              style={{ color: "var(--accent)", textDecoration: "none", fontWeight: 600 }}
-            >
+            <Link href="/register" className={styles.authLink}>
               Sign Up
             </Link>
           </p>

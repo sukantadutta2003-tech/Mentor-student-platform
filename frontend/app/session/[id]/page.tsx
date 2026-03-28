@@ -8,6 +8,7 @@ import { Client } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
 import dynamic from "next/dynamic";
 import VideoCall from "../../components/VideoCall";
+import styles from "./page.module.css";
 
 const MonacoEditor = dynamic(() => import("@monaco-editor/react"), {
   ssr: false,
@@ -52,7 +53,6 @@ export default function SessionRoomPage() {
     if (!isLoading && !user) router.push("/login");
   }, [user, isLoading, router]);
 
-  // Fetch session data and chat history
   useEffect(() => {
     if (!user) return;
     const fetchData = async () => {
@@ -70,7 +70,6 @@ export default function SessionRoomPage() {
     fetchData();
   }, [sessionId, user, router]);
 
-  // STOMP connection for chat + code
   useEffect(() => {
     if (!user) return;
 
@@ -82,13 +81,11 @@ export default function SessionRoomPage() {
       onConnect: () => {
         setConnected(true);
 
-        // Chat subscription
         client.subscribe(`/topic/session/${sessionId}`, (message) => {
           const chatMsg: ChatMessage = JSON.parse(message.body);
           setMessages((prev) => [...prev, chatMsg]);
         });
 
-        // Code sync subscription
         client.subscribe(
           `/topic/session/${sessionId}/code`,
           (message) => {
@@ -114,7 +111,6 @@ export default function SessionRoomPage() {
     };
   }, [sessionId, user]);
 
-  // Auto-scroll chat
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
@@ -164,127 +160,44 @@ export default function SessionRoomPage() {
   if (isLoading || !user || !session) return null;
 
   return (
-    <div
-      style={{
-        height: "100vh",
-        display: "flex",
-        flexDirection: "column",
-        background: "var(--bg-primary)",
-      }}
-    >
+    <div className={styles.container}>
       {/* Header Bar */}
-      <header
-        style={{
-          height: "56px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: "0 20px",
-          background: "var(--bg-secondary)",
-          borderBottom: "1px solid var(--border)",
-          flexShrink: 0,
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+      <header className={styles.header}>
+        <div className={styles.headerLeft}>
           <button
             onClick={() => router.push("/dashboard")}
-            style={{
-              background: "transparent",
-              border: "none",
-              color: "var(--text-secondary)",
-              fontSize: "1.2rem",
-              cursor: "pointer",
-            }}
+            className={styles.backButton}
           >
             ←
           </button>
+          <span className={styles.headerLogo}>MentorConnect</span>
           <span
-            style={{
-              fontWeight: 700,
-              fontSize: "1rem",
-              background: "linear-gradient(135deg, #6366f1, #a855f7)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-            }}
-          >
-            MentorConnect
-          </span>
-          <span
-            style={{
-              padding: "4px 10px",
-              background:
-                session.status === "ACTIVE"
-                  ? "rgba(34,197,94,0.15)"
-                  : "rgba(107,107,138,0.15)",
-              color:
-                session.status === "ACTIVE"
-                  ? "var(--success)"
-                  : "var(--text-muted)",
-              borderRadius: "6px",
-              fontSize: "0.75rem",
-              fontWeight: 600,
-            }}
+            className={`${styles.statusBadge} ${
+              session.status === "ACTIVE" ? styles.statusActive : styles.statusCompleted
+            }`}
           >
             {session.status}
           </span>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-          <span
-            style={{
-              padding: "4px 10px",
-              background: "var(--bg-card)",
-              borderRadius: "6px",
-              fontSize: "0.75rem",
-              color: "var(--text-muted)",
-              fontFamily: "monospace",
-            }}
-          >
+        <div className={styles.headerRight}>
+          <span className={styles.sessionIdBadge}>
             ID: {sessionId.substring(0, 8)}...
           </span>
           <button
             onClick={() => navigator.clipboard.writeText(sessionId)}
-            style={{
-              background: "var(--bg-card)",
-              border: "1px solid var(--border)",
-              color: "var(--text-secondary)",
-              padding: "6px 12px",
-              borderRadius: "8px",
-              fontSize: "0.8rem",
-              cursor: "pointer",
-            }}
+            className={styles.copyIdButton}
           >
-            📋 Copy ID
+            Copy ID
           </button>
           {session.status === "ACTIVE" && (
             user.role === "MENTOR" ? (
-              <button
-                onClick={handleEndSession}
-                style={{
-                  background: "rgba(239,68,68,0.15)",
-                  border: "1px solid rgba(239,68,68,0.3)",
-                  color: "var(--danger)",
-                  padding: "6px 14px",
-                  borderRadius: "8px",
-                  fontSize: "0.8rem",
-                  fontWeight: 600,
-                  cursor: "pointer",
-                }}
-              >
+              <button onClick={handleEndSession} className={styles.endSessionButton}>
                 End Session
               </button>
             ) : (
               <button
                 onClick={() => router.push("/dashboard")}
-                style={{
-                  background: "rgba(251,191,36,0.15)",
-                  border: "1px solid rgba(251,191,36,0.3)",
-                  color: "#fbbf24",
-                  padding: "6px 14px",
-                  borderRadius: "8px",
-                  fontSize: "0.8rem",
-                  fontWeight: 600,
-                  cursor: "pointer",
-                }}
+                className={styles.leaveSessionButton}
               >
                 Leave Session
               </button>
@@ -294,54 +207,15 @@ export default function SessionRoomPage() {
       </header>
 
       {/* Main Area */}
-      <div
-        style={{
-          flex: 1,
-          display: "grid",
-          gridTemplateColumns: "1fr 380px",
-          overflow: "hidden",
-        }}
-      >
+      <div className={styles.mainArea}>
         {/* Code Editor Panel */}
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            borderRight: "1px solid var(--border)",
-          }}
-        >
-          {/* Language Selector */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "10px",
-              padding: "10px 16px",
-              background: "var(--bg-secondary)",
-              borderBottom: "1px solid var(--border)",
-            }}
-          >
-            <span
-              style={{
-                fontSize: "0.8rem",
-                color: "var(--text-muted)",
-                fontWeight: 500,
-              }}
-            >
-              Language:
-            </span>
+        <div className={styles.editorPanel}>
+          <div className={styles.languageBar}>
+            <span className={styles.languageLabel}>Language:</span>
             <select
               value={language}
               onChange={(e) => setLanguage(e.target.value)}
-              style={{
-                background: "var(--bg-card)",
-                color: "var(--text-primary)",
-                border: "1px solid var(--border)",
-                borderRadius: "6px",
-                padding: "4px 10px",
-                fontSize: "0.8rem",
-                outline: "none",
-              }}
+              className={styles.languageSelect}
             >
               {[
                 "javascript",
@@ -359,34 +233,18 @@ export default function SessionRoomPage() {
                 </option>
               ))}
             </select>
-            <div
-              style={{
-                marginLeft: "auto",
-                display: "flex",
-                alignItems: "center",
-                gap: "6px",
-              }}
-            >
+            <div className={styles.connectionStatus}>
               <span
-                style={{
-                  width: "6px",
-                  height: "6px",
-                  borderRadius: "50%",
-                  background: connected ? "var(--success)" : "var(--danger)",
-                }}
+                className={`${styles.connectionDot} ${
+                  connected ? styles.connectionDotConnected : styles.connectionDotDisconnected
+                }`}
               />
-              <span
-                style={{
-                  fontSize: "0.75rem",
-                  color: "var(--text-muted)",
-                }}
-              >
+              <span className={styles.connectionLabel}>
                 {connected ? "Connected" : "Disconnected"}
               </span>
             </div>
           </div>
-          {/* Monaco Editor */}
-          <div style={{ flex: 1 }}>
+          <div className={styles.editorContainer}>
             <MonacoEditor
               height="100%"
               language={language}
@@ -406,45 +264,13 @@ export default function SessionRoomPage() {
         </div>
 
         {/* Right Sidebar: Chat / Video */}
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            background: "var(--bg-secondary)",
-          }}
-        >
-          {/* Tab Switch */}
-          <div
-            style={{
-              display: "flex",
-              borderBottom: "1px solid var(--border)",
-            }}
-          >
+        <div className={styles.sidebar}>
+          <div className={styles.tabSwitch}>
             {(["chat", "video"] as const).map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                style={{
-                  flex: 1,
-                  padding: "12px",
-                  background:
-                    activeTab === tab
-                      ? "var(--bg-card)"
-                      : "transparent",
-                  border: "none",
-                  borderBottom:
-                    activeTab === tab
-                      ? "2px solid var(--accent)"
-                      : "2px solid transparent",
-                  color:
-                    activeTab === tab
-                      ? "var(--text-primary)"
-                      : "var(--text-muted)",
-                  fontWeight: 600,
-                  fontSize: "0.85rem",
-                  cursor: "pointer",
-                  transition: "all 0.15s",
-                }}
+                className={`${styles.tabBtn} ${activeTab === tab ? styles.tabBtnActive : ""}`}
               >
                 {tab === "chat" ? "💬 Chat" : "🎥 Video"}
               </button>
@@ -453,85 +279,24 @@ export default function SessionRoomPage() {
 
           {/* Chat Panel */}
           {activeTab === "chat" && (
-            <div
-              style={{
-                flex: 1,
-                display: "flex",
-                flexDirection: "column",
-                overflow: "hidden",
-              }}
-            >
-              {/* Messages */}
-              <div
-                style={{
-                  flex: 1,
-                  overflowY: "auto",
-                  padding: "16px",
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "10px",
-                }}
-              >
+            <div className={styles.chatPanel}>
+              <div className={styles.chatMessages}>
                 {messages.length === 0 && (
-                  <p
-                    style={{
-                      textAlign: "center",
-                      color: "var(--text-muted)",
-                      marginTop: "40px",
-                      fontSize: "0.9rem",
-                    }}
-                  >
+                  <p className={styles.chatEmpty}>
                     No messages yet. Say hello! 👋
                   </p>
                 )}
                 {messages.map((msg, i) => {
                   const isOwn = msg.senderId === user.id;
                   return (
-                    <div
-                      key={i}
-                      style={{
-                        maxWidth: "85%",
-                        alignSelf: isOwn ? "flex-end" : "flex-start",
-                      }}
-                    >
+                    <div key={i} className={isOwn ? styles.msgOwn : styles.msgOther}>
                       {!isOwn && (
-                        <span
-                          style={{
-                            fontSize: "0.7rem",
-                            color: "var(--accent)",
-                            fontWeight: 600,
-                            marginBottom: "2px",
-                            display: "block",
-                          }}
-                        >
-                          {msg.senderName}
-                        </span>
+                        <span className={styles.msgSender}>{msg.senderName}</span>
                       )}
-                      <div
-                        style={{
-                          padding: "10px 14px",
-                          borderRadius: isOwn
-                            ? "12px 12px 4px 12px"
-                            : "12px 12px 12px 4px",
-                          background: isOwn
-                            ? "linear-gradient(135deg, var(--gradient-start), var(--gradient-end))"
-                            : "var(--bg-card)",
-                          color: "var(--text-primary)",
-                          fontSize: "0.9rem",
-                          lineHeight: 1.5,
-                        }}
-                      >
+                      <div className={isOwn ? styles.msgBubbleOwn : styles.msgBubbleOther}>
                         {msg.content}
                       </div>
-                      <span
-                        style={{
-                          fontSize: "0.65rem",
-                          color: "var(--text-muted)",
-                          textAlign: isOwn ? "right" : "left",
-                          display: "block",
-                          marginTop: "2px",
-                        }}
-                      >
+                      <span className={`${styles.msgTime} ${isOwn ? styles.msgTimeOwn : styles.msgTimeOther}`}>
                         {msg.timestamp
                           ? new Date(msg.timestamp).toLocaleTimeString([], {
                               hour: "2-digit",
@@ -545,31 +310,17 @@ export default function SessionRoomPage() {
                 <div ref={chatEndRef} />
               </div>
 
-              {/* Chat Input */}
-              <div
-                style={{
-                  padding: "12px 16px",
-                  borderTop: "1px solid var(--border)",
-                  display: "flex",
-                  gap: "10px",
-                }}
-              >
+              <div className={styles.chatInputBar}>
                 <input
-                  className="input-field"
+                  className={`input-field ${styles.chatInput}`}
                   placeholder="Type a message..."
                   value={chatInput}
                   onChange={(e) => setChatInput(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && sendChatMessage()}
-                  style={{ flex: 1, padding: "10px 14px" }}
                 />
                 <button
-                  className="btn-primary"
+                  className={`btn-primary ${styles.chatSendBtn}`}
                   onClick={sendChatMessage}
-                  style={{
-                    padding: "10px 18px",
-                    borderRadius: "10px",
-                    fontSize: "0.85rem",
-                  }}
                 >
                   Send
                 </button>
@@ -579,7 +330,7 @@ export default function SessionRoomPage() {
 
           {/* Video Panel */}
           {activeTab === "video" && (
-            <div style={{ flex: 1, overflow: "auto" }}>
+            <div className={styles.videoPanel}>
               <VideoCall
                 sessionId={sessionId}
                 token={user.token}

@@ -6,6 +6,7 @@ import Link from "next/link";
 import { register } from "../lib/api";
 import { useAuth } from "../context/AuthContext";
 import Navbar from "../components/Navbar";
+import styles from "../styles/auth.module.css";
 
 export default function RegisterPage() {
   const [username, setUsername] = useState("");
@@ -42,67 +43,18 @@ export default function RegisterPage() {
   return (
     <>
       <Navbar />
-      <main
-        style={{
-          paddingTop: "52px",
-          minHeight: "100vh",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          padding: "80px 24px",
-        }}
-      >
-        <div
-          className="glass-card animate-fade-in-up"
-          style={{ width: "100%", maxWidth: "440px", padding: "40px" }}
-        >
-          <div style={{ textAlign: "center", marginBottom: "32px" }}>
-            <h1
-              style={{
-                fontSize: "1.8rem",
-                fontWeight: 700,
-                marginBottom: "8px",
-              }}
-            >
-              Create Account
-            </h1>
-            <p style={{ color: "var(--text-secondary)", fontSize: "0.95rem" }}>
-              Join as a Mentor or Student
-            </p>
+      <main className={styles.authMain}>
+        <div className={`glass-card animate-fade-in-up ${styles.authCard}`}>
+          <div className={styles.authHeader}>
+            <h1 className={styles.authTitle}>Create Account</h1>
+            <p className={styles.authSubtitle}>Join as a Mentor or Student</p>
           </div>
 
-          {error && (
-            <div
-              style={{
-                padding: "12px 16px",
-                background: "rgba(239,68,68,0.1)",
-                border: "1px solid rgba(239,68,68,0.3)",
-                borderRadius: "10px",
-                color: "var(--danger)",
-                fontSize: "0.9rem",
-                marginBottom: "20px",
-              }}
-            >
-              {error}
-            </div>
-          )}
+          {error && <div className={styles.authError}>{error}</div>}
 
-          <form
-            onSubmit={handleSubmit}
-            style={{ display: "flex", flexDirection: "column", gap: "16px" }}
-          >
+          <form onSubmit={handleSubmit} className={styles.authForm}>
             <div>
-              <label
-                style={{
-                  display: "block",
-                  marginBottom: "6px",
-                  fontSize: "0.85rem",
-                  color: "var(--text-secondary)",
-                  fontWeight: 500,
-                }}
-              >
-                Username
-              </label>
+              <label className={styles.label}>Username</label>
               <input
                 type="text"
                 className="input-field"
@@ -113,17 +65,7 @@ export default function RegisterPage() {
               />
             </div>
             <div>
-              <label
-                style={{
-                  display: "block",
-                  marginBottom: "6px",
-                  fontSize: "0.85rem",
-                  color: "var(--text-secondary)",
-                  fontWeight: 500,
-                }}
-              >
-                Email
-              </label>
+              <label className={styles.label}>Email</label>
               <input
                 type="email"
                 className="input-field"
@@ -134,17 +76,7 @@ export default function RegisterPage() {
               />
             </div>
             <div>
-              <label
-                style={{
-                  display: "block",
-                  marginBottom: "6px",
-                  fontSize: "0.85rem",
-                  color: "var(--text-secondary)",
-                  fontWeight: 500,
-                }}
-              >
-                Password
-              </label>
+              <label className={styles.label}>Password</label>
               <input
                 type="password"
                 className="input-field"
@@ -156,44 +88,16 @@ export default function RegisterPage() {
               />
             </div>
             <div>
-              <label
-                style={{
-                  display: "block",
-                  marginBottom: "6px",
-                  fontSize: "0.85rem",
-                  color: "var(--text-secondary)",
-                  fontWeight: 500,
-                }}
-              >
-                I am a...
-              </label>
-              <div style={{ display: "flex", gap: "12px" }}>
+              <label className={styles.label}>I am a...</label>
+              <div className={styles.roleRow}>
                 {["STUDENT", "MENTOR"].map((r) => (
                   <button
                     key={r}
                     type="button"
                     onClick={() => setRole(r)}
-                    style={{
-                      flex: 1,
-                      padding: "12px",
-                      borderRadius: "12px",
-                      border:
-                        role === r
-                          ? "2px solid var(--accent)"
-                          : "1px solid var(--border)",
-                      background:
-                        role === r
-                          ? "rgba(99,102,241,0.1)"
-                          : "var(--bg-secondary)",
-                      color:
-                        role === r
-                          ? "var(--accent)"
-                          : "var(--text-secondary)",
-                      fontWeight: 600,
-                      fontSize: "0.9rem",
-                      cursor: "pointer",
-                      transition: "all 0.2s",
-                    }}
+                    className={`${styles.roleButton} ${
+                      role === r ? styles.roleButtonActive : ""
+                    }`}
                   >
                     {r === "STUDENT" ? "🎓 Student" : "👨‍🏫 Mentor"}
                   </button>
@@ -202,36 +106,17 @@ export default function RegisterPage() {
             </div>
             <button
               type="submit"
-              className="btn-primary"
+              className={`btn-primary ${styles.submitBtn}`}
               disabled={loading}
-              style={{
-                width: "100%",
-                justifyContent: "center",
-                marginTop: "8px",
-                opacity: loading ? 0.7 : 1,
-              }}
+              style={{ opacity: loading ? 0.7 : 1 }}
             >
               {loading ? "Creating Account..." : "Create Account"}
             </button>
           </form>
 
-          <p
-            style={{
-              textAlign: "center",
-              marginTop: "24px",
-              color: "var(--text-secondary)",
-              fontSize: "0.9rem",
-            }}
-          >
+          <p className={styles.authFooter}>
             Already have an account?{" "}
-            <Link
-              href="/login"
-              style={{
-                color: "var(--accent)",
-                textDecoration: "none",
-                fontWeight: 600,
-              }}
-            >
+            <Link href="/login" className={styles.authLink}>
               Sign In
             </Link>
           </p>
