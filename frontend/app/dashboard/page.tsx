@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../context/AuthContext";
-import { createSession, getMySessions, joinSession } from "../lib/api";
+import { createSession, getMySessions, joinSession, clearHistory } from "../lib/api";
 import Navbar from "../components/Navbar";
 
 interface Session {
@@ -80,6 +80,16 @@ export default function DashboardPage() {
     setTimeout(() => setCopiedId(null), 2000);
   };
 
+  const handleClearHistory = async () => {
+    if (!confirm("Are you sure you want to clear all completed sessions?")) return;
+    try {
+      await clearHistory();
+      setSessions((prev) => prev.filter((s) => s.status === "ACTIVE"));
+    } catch {
+      setError("Failed to clear history");
+    }
+  };
+
   if (isLoading || !user) return null;
 
   const activeSessions = sessions.filter((s) => s.status === "ACTIVE");
@@ -143,7 +153,7 @@ export default function DashboardPage() {
                   marginBottom: "12px",
                 }}
               >
-                🎯 Create Session
+                Create Session
               </h3>
               <p
                 style={{
@@ -174,7 +184,7 @@ export default function DashboardPage() {
                 marginBottom: "12px",
               }}
             >
-              🔗 Join Session
+              Join Session
             </h3>
             <p
               style={{
@@ -242,15 +252,17 @@ export default function DashboardPage() {
                 gap: "8px",
               }}
             >
-              <span
-                style={{
-                  width: "8px",
-                  height: "8px",
-                  borderRadius: "50%",
-                  background: "var(--success)",
-                  display: "inline-block",
-                }}
-              />
+              {activeSessions.length > 0 && (
+                <span
+                  style={{
+                    width: "8px",
+                    height: "8px",
+                    borderRadius: "50%",
+                    background: "var(--success)",
+                    display: "inline-block",
+                  }}
+                />
+              )}
               Active Sessions
               {activeSessions.length > 0 && (
                 <span
@@ -291,7 +303,7 @@ export default function DashboardPage() {
                 gap: "8px",
               }}
             >
-              📁 History
+              History
               {completedSessions.length > 0 && (
                 <span
                   style={{
@@ -330,7 +342,7 @@ export default function DashboardPage() {
                   color: "var(--text-muted)",
                 }}
               >
-                <p style={{ fontSize: "2.5rem", marginBottom: "12px" }}>🟢</p>
+
                 <p style={{ fontSize: "1.05rem", marginBottom: "6px" }}>
                   No active sessions
                 </p>
@@ -368,7 +380,7 @@ export default function DashboardPage() {
                 color: "var(--text-muted)",
               }}
             >
-              <p style={{ fontSize: "2.5rem", marginBottom: "12px" }}>📭</p>
+
               <p style={{ fontSize: "1.05rem", marginBottom: "6px" }}>
                 No completed sessions yet
               </p>
@@ -387,6 +399,30 @@ export default function DashboardPage() {
               {completedSessions.map((s) => (
                 <SessionCard key={s.id} session={s} copiedId={copiedId} onCopy={copySessionId} />
               ))}
+              <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "12px" }}>
+                <button
+                  onClick={handleClearHistory}
+                  style={{
+                    background: "rgba(150,150,170,0.12)",
+                    border: "1px solid rgba(150,150,170,0.2)",
+                    color: "var(--text-muted)",
+                    padding: "5px 12px",
+                    borderRadius: "8px",
+                    fontSize: "0.75rem",
+                    fontWeight: 500,
+                    cursor: "pointer",
+                    transition: "all 0.2s",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = "rgba(150,150,170,0.2)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = "rgba(150,150,170,0.12)";
+                  }}
+                >
+                  Clear
+                </button>
+              </div>
             </div>
           )}
         </div>
@@ -406,8 +442,6 @@ function SessionCard({
   copiedId: string | null;
   onCopy: (id: string) => void;
 }) {
-  const isActive = session.status === "ACTIVE";
-
   return (
     <div
       className="glass-card"
@@ -434,25 +468,27 @@ function SessionCard({
           >
             {session.id}
           </p>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onCopy(session.id);
-            }}
-            style={{
-              background: "transparent",
-              border: "none",
-              color: copiedId === session.id ? "var(--success)" : "var(--text-muted)",
-              cursor: "pointer",
-              fontSize: "0.8rem",
-              padding: "2px 6px",
-              borderRadius: "4px",
-              flexShrink: 0,
-            }}
-            title="Copy Session ID"
-          >
-            {copiedId === session.id ? "✓ Copied" : "📋"}
-          </button>
+          {session.status === "ACTIVE" && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onCopy(session.id);
+              }}
+              style={{
+                background: "transparent",
+                border: "none",
+                color: copiedId === session.id ? "var(--success)" : "var(--text-muted)",
+                cursor: "pointer",
+                fontSize: "0.8rem",
+                padding: "2px 6px",
+                borderRadius: "4px",
+                flexShrink: 0,
+              }}
+              title="Copy Session ID"
+            >
+              {copiedId === session.id ? "✓" : "Copy"}
+            </button>
+          )}
         </div>
         <div style={{ display: "flex", gap: "12px", fontSize: "0.78rem", color: "var(--text-muted)" }}>
           <span>Started: {new Date(session.startTime).toLocaleString()}</span>
@@ -461,25 +497,9 @@ function SessionCard({
           )}
         </div>
       </div>
-      <div style={{ display: "flex", alignItems: "center", gap: "10px", flexShrink: 0 }}>
-        <span
-          style={{
-            padding: "4px 12px",
-            borderRadius: "8px",
-            fontSize: "0.75rem",
-            fontWeight: 600,
-            background: isActive
-              ? "rgba(34,197,94,0.15)"
-              : "rgba(107,107,138,0.15)",
-            color: isActive ? "var(--success)" : "var(--text-muted)",
-          }}
-        >
-          {session.status}
-        </span>
-        {onClick && (
-          <span style={{ color: "var(--accent)", fontSize: "1.2rem" }}>→</span>
-        )}
-      </div>
+      {onClick && (
+        <span style={{ color: "var(--accent)", fontSize: "1.2rem", flexShrink: 0 }}>→</span>
+      )}
     </div>
   );
 }

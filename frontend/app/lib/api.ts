@@ -12,7 +12,7 @@ const api = axios.create({
 // Attach JWT to every request
 api.interceptors.request.use((config) => {
   if (typeof window !== "undefined") {
-    const token = localStorage.getItem("token");
+    const token = sessionStorage.getItem("token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -40,6 +40,7 @@ export const endSession = (sessionId: string) =>
 export const getSession = (sessionId: string) =>
   api.get(`/sessions/${sessionId}`);
 export const getMySessions = () => api.get("/sessions/my");
+export const clearHistory = () => api.delete("/sessions/history");
 
 // Chat
 export const getSessionMessages = (sessionId: string) =>

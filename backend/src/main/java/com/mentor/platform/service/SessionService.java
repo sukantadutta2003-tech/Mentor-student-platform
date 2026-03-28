@@ -97,6 +97,14 @@ public class SessionService {
         return sessions.stream().map(this::mapToResponse).collect(Collectors.toList());
     }
 
+    public void clearHistory() {
+        User currentUser = getCurrentUser();
+        List<Session> completed = sessionRepository.findByStatusAndMentorIdOrStatusAndStudentId(
+                SessionStatus.COMPLETED, currentUser.getId(),
+                SessionStatus.COMPLETED, currentUser.getId());
+        sessionRepository.deleteAll(completed);
+    }
+
     private SessionResponse mapToResponse(Session session) {
         return SessionResponse.builder()
                 .id(session.getId())

@@ -26,13 +26,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
+    const storedUser = sessionStorage.getItem("user");
     if (storedUser) {
       try {
         setUser(JSON.parse(storedUser));
       } catch {
-        localStorage.removeItem("user");
-        localStorage.removeItem("token");
+        sessionStorage.removeItem("user");
+        sessionStorage.removeItem("token");
       }
     }
     setIsLoading(false);
@@ -40,14 +40,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const loginUser = (userData: User) => {
     setUser(userData);
-    localStorage.setItem("user", JSON.stringify(userData));
-    localStorage.setItem("token", userData.token);
+    sessionStorage.setItem("user", JSON.stringify(userData));
+    sessionStorage.setItem("token", userData.token);
   };
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem("user");
-    localStorage.removeItem("token");
+    sessionStorage.removeItem("user");
+    sessionStorage.removeItem("token");
     router.push("/login");
   };
 

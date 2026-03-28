@@ -110,7 +110,7 @@ export default function LandingPage() {
               {user ? (
                 <Link href="/dashboard">
                   <button className="btn-primary" style={{ fontSize: "1rem", padding: "14px 32px" }}>
-                    📋 Go to Dashboard
+                    Go to Dashboard
                   </button>
                 </Link>
               ) : (

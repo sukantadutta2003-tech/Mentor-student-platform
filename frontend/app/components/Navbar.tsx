@@ -218,7 +218,7 @@ export default function Navbar() {
                         (e.currentTarget.style.background = "transparent")
                       }
                     >
-                      📋 Dashboard
+                      Dashboard
                     </Link>
                     <button
                       onClick={() => {
@@ -248,7 +248,7 @@ export default function Navbar() {
                         (e.currentTarget.style.background = "transparent")
                       }
                     >
-                      🚪 Logout
+                      Logout
                     </button>
                   </div>
                 </div>

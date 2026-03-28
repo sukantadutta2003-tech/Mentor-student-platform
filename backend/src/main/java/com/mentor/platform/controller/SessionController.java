@@ -41,4 +41,10 @@ public class SessionController {
     public ResponseEntity<List<SessionResponse>> getMySessions() {
         return ResponseEntity.ok(sessionService.getMySessions());
     }
+
+    @DeleteMapping("/history")
+    public ResponseEntity<Void> clearHistory() {
+        sessionService.clearHistory();
+        return ResponseEntity.ok().build();
+    }
 }
