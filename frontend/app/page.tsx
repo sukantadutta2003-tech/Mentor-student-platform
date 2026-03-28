@@ -10,7 +10,7 @@ export default function LandingPage() {
   return (
     <>
       <Navbar />
-      <main style={{ paddingTop: "64px" }}>
+      <main style={{ paddingTop: "52px" }}>
         {/* Hero Section */}
         <section
           style={{

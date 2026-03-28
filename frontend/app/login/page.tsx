@@ -40,7 +40,7 @@ export default function LoginPage() {
       <Navbar />
       <main
         style={{
-          paddingTop: "64px",
+          paddingTop: "52px",
           minHeight: "100vh",
           display: "flex",
           alignItems: "center",

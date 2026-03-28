@@ -90,10 +90,10 @@ export default function DashboardPage() {
       <Navbar />
       <main
         style={{
-          paddingTop: "88px",
+          paddingTop: "76px",
           maxWidth: "1000px",
           margin: "0 auto",
-          padding: "88px 24px 60px",
+          padding: "76px 24px 60px",
         }}
       >
         {/* Welcome Header */}
