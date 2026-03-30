@@ -123,3 +123,27 @@
   transform: scale(1.05);
   box-shadow: 0 4px 16px rgba(239, 68, 68, 0.4);
 }
+
+/* ===== Warning Message ===== */
+.warningMessage {
+  padding: 10px 14px;
+  background: rgba(251, 191, 36, 0.1);
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  border-radius: 8px;
+  color: #fbbf24;
+  font-size: 0.85rem;
+  text-align: center;
+  line-height: 1.4;
+}
+
+/* ===== Error Message ===== */
+.errorMessage {
+  padding: 10px 14px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 8px;
+  color: #ef4444;
+  font-size: 0.85rem;
+  text-align: center;
+  line-height: 1.4;
+}

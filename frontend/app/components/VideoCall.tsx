@@ -17,6 +17,8 @@ export default function VideoCall({ sessionId, token, userId }: VideoCallProps) 
     isCallActive,
     isMuted,
     isVideoOff,
+    error,
+    warning,
     startCall,
     endCall,
     toggleMute,
@@ -67,6 +69,14 @@ export default function VideoCall({ sessionId, token, userId }: VideoCallProps) 
           />
         </div>
       </div>
+
+      {/* Warning / Error Messages */}
+      {warning && (
+        <div className={styles.warningMessage}>{warning}</div>
+      )}
+      {error && (
+        <div className={styles.errorMessage}>{error}</div>
+      )}
 
       {/* Controls */}
       <div className={styles.controls}>

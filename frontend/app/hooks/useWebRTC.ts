@@ -16,6 +16,8 @@ export function useWebRTC({ sessionId, token, userId }: UseWebRTCOptions) {
   const [isCallActive, setIsCallActive] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [isVideoOff, setIsVideoOff] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [warning, setWarning] = useState<string | null>(null);
 
   const peerConnection = useRef<RTCPeerConnection | null>(null);
   const stompClient = useRef<Client | null>(null);
@@ -71,12 +73,49 @@ export function useWebRTC({ sessionId, token, userId }: UseWebRTCOptions) {
     return pc;
   }, [sendSignal]);
 
-  const startCall = useCallback(async () => {
+  const getMediaStream = useCallback(async (): Promise<MediaStream> => {
+    // Try video + audio first
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: true,
         audio: true,
       });
+      return stream;
+    } catch {
+      // Video failed — try audio only
+    }
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: false,
+        audio: true,
+      });
+      setWarning("No camera detected — joined with audio only.");
+      setIsVideoOff(true);
+      return stream;
+    } catch {
+      // Audio also failed — try video only
+    }
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: true,
+        audio: false,
+      });
+      setWarning("No microphone detected — joined with video only.");
+      setIsMuted(true);
+      return stream;
+    } catch {
+      // Both failed
+      throw new DOMException("No media devices found", "NotFoundError");
+    }
+  }, []);
+
+  const startCall = useCallback(async () => {
+    setError(null);
+    setWarning(null);
+    try {
+      const stream = await getMediaStream();
       setLocalStream(stream);
 
       const pc = createPeerConnection();
@@ -87,10 +126,21 @@ export function useWebRTC({ sessionId, token, userId }: UseWebRTCOptions) {
       sendSignal("offer", offer);
 
       setIsCallActive(true);
-    } catch (error) {
-      console.error("Failed to start call:", error);
+    } catch (err) {
+      console.error("Failed to start call:", err);
+      if (err instanceof DOMException) {
+        if (err.name === "NotFoundError") {
+          setError("No camera or microphone found. Please connect a device and try again.");
+        } else if (err.name === "NotAllowedError") {
+          setError("Camera/microphone access denied. Please allow permissions in your browser settings.");
+        } else {
+          setError(`Could not access media devices: ${err.message}`);
+        }
+      } else {
+        setError("Failed to start call. Please try again.");
+      }
     }
-  }, [createPeerConnection, sendSignal]);
+  }, [createPeerConnection, sendSignal, getMediaStream]);
 
   const endCall = useCallback(() => {
     if (peerConnection.current) {
@@ -198,6 +248,8 @@ export function useWebRTC({ sessionId, token, userId }: UseWebRTCOptions) {
     isCallActive,
     isMuted,
     isVideoOff,
+    error,
+    warning,
     startCall,
     endCall,
     toggleMute,
