@@ -74,7 +74,7 @@ export default function SessionRoomPage() {
     if (!user) return;
 
     const client = new Client({
-      webSocketFactory: () => new SockJS("http://localhost:8080/ws"),
+      webSocketFactory: () => new SockJS(process.env.NEXT_PUBLIC_WS_URL || "http://localhost:8080/ws"),
       connectHeaders: {
         Authorization: `Bearer ${user.token}`,
       },

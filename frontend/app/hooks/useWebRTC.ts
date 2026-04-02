@@ -177,7 +177,7 @@ export function useWebRTC({ sessionId, token, userId }: UseWebRTCOptions) {
   // Connect to signaling server and listen for WebRTC signals
   useEffect(() => {
     const client = new Client({
-      webSocketFactory: () => new SockJS("http://localhost:8080/ws"),
+      webSocketFactory: () => new SockJS(process.env.NEXT_PUBLIC_WS_URL || "http://localhost:8080/ws"),
       connectHeaders: {
         Authorization: `Bearer ${token}`,
       },
