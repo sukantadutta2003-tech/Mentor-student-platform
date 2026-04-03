@@ -21,7 +21,6 @@ export default function VideoCall({ sessionId, token, userId, onLeave }: VideoCa
   const {
     localStream,
     remoteStream,
-    isCallActive,
     isMuted,
     isVideoOff,
     error,

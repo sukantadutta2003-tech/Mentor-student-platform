@@ -71,6 +71,7 @@ export function useWebRTC({ sessionId, token, userId }: UseWebRTCOptions) {
 
     peerConnection.current = pc;
     return pc;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sendSignal]);
 
   const getMediaStream = useCallback(async (): Promise<MediaStream> => {
@@ -240,6 +241,7 @@ export function useWebRTC({ sessionId, token, userId }: UseWebRTCOptions) {
       client.deactivate();
       endCall();
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionId, token, userId]);
 
   return {
