@@ -18,65 +18,40 @@
   overflow: hidden;
 }
 
-.remoteWrapper {
-  width: 100%;
-  height: 100%;
-}
-
-.remoteVideo {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
+.remoteWrapper { width: 100%; height: 100%; }
+.remoteVideo { width: 100%; height: 100%; object-fit: cover; }
 
 .placeholder {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #6c6c8a;
-  font-size: 1.1rem;
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  color: #6c6c8a; font-size: 1.1rem;
 }
 
 .localWrapper {
-  position: absolute;
-  bottom: 12px;
-  right: 12px;
-  width: 160px;
-  height: 120px;
-  border-radius: 8px;
-  overflow: hidden;
-  border: 2px solid #6366f1;
+  position: absolute; bottom: 12px; right: 12px;
+  width: 160px; height: 120px; border-radius: 8px;
+  overflow: hidden; border: 2px solid #6366f1;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
-.localVideo {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
+.localVideo { width: 100%; height: 100%; object-fit: cover; }
 
-/* ===== Control Bar ===== */
+/* ===== Control Bar (Google Meet Style) ===== */
 .controlBar {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   justify-content: center;
   align-items: center;
   padding: 10px 0 4px;
 }
 
-/* ===== Control Button Group (button + dropdown arrow) ===== */
 .controlGroup {
   display: flex;
   align-items: center;
   position: relative;
 }
 
-/* ===== Icon Buttons ===== */
+/* ===== Main Control Buttons ===== */
 .controlBtn {
   width: 44px;
   height: 44px;
@@ -87,57 +62,78 @@
   justify-content: center;
   cursor: pointer;
   transition: background 0.15s, transform 0.1s;
-  font-size: 1.1rem;
-  background: #2d2d44;
-  color: #e0e0f0;
+  background: #3c4043;
+  color: #e8eaed;
 }
 
 .controlBtn:hover {
-  background: #3d3d5c;
+  background: #4a4d51;
   transform: scale(1.05);
 }
 
+/* When muted/off — red background */
 .controlBtnOff {
-  background: #dc2626;
+  background: #ea4335;
   color: white;
 }
 
 .controlBtnOff:hover {
-  background: #ef4444;
+  background: #d93025;
 }
 
-/* ===== Dropdown Arrow Button ===== */
+/* Pill shape when arrow is present */
+.controlBtnWithArrow {
+  border-radius: 22px 0 0 22px;
+}
+
+/* ===== Dropdown Arrow ===== */
 .dropdownArrow {
-  width: 22px;
+  width: 20px;
   height: 44px;
   border-radius: 0 22px 22px 0;
   border: none;
-  background: #2d2d44;
-  color: #9494b8;
+  background: #3c4043;
+  color: #9aa0a6;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   transition: background 0.15s;
-  font-size: 0.6rem;
   margin-left: 1px;
 }
 
 .dropdownArrow:hover {
-  background: #3d3d5c;
+  background: #4a4d51;
 }
 
 .dropdownArrowOff {
-  background: #dc2626;
+  background: #ea4335;
+  color: rgba(255,255,255,0.7);
 }
 
 .dropdownArrowOff:hover {
-  background: #ef4444;
+  background: #d93025;
 }
 
-/* When arrow is present, adjust main button shape */
-.controlBtnWithArrow {
-  border-radius: 50% 0 0 50%;
+/* ===== End Call Button ===== */
+.btnCallEnd {
+  width: 56px;
+  height: 40px;
+  border-radius: 20px;
+  background: #ea4335;
+  color: white;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+  margin-left: 12px;
+}
+
+.btnCallEnd:hover {
+  background: #d93025;
+  transform: scale(1.05);
 }
 
 /* ===== Device Dropdown ===== */
@@ -148,7 +144,7 @@
   transform: translateX(-50%);
   min-width: 280px;
   max-width: 360px;
-  background: #1e1e36;
+  background: #2d2d44;
   border: 1px solid #3d3d5c;
   border-radius: 10px;
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
@@ -164,7 +160,7 @@
   color: #9494b8;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  border-bottom: 1px solid #2a2a4a;
+  border-bottom: 1px solid #3d3d5c;
 }
 
 .deviceOption {
@@ -207,65 +203,27 @@
   font-style: italic;
 }
 
-/* ===== Start / End Call Buttons ===== */
-.btnCallStart {
-  background: linear-gradient(135deg, #22c55e, #16a34a);
-  color: white;
-  border: none;
-  padding: 10px 24px;
-  border-radius: 24px;
-  font-size: 0.95rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: transform 0.15s, box-shadow 0.15s;
-}
-
-.btnCallStart:hover {
-  transform: scale(1.05);
-  box-shadow: 0 4px 16px rgba(34, 197, 94, 0.4);
-}
-
-.btnCallEnd {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #ef4444, #dc2626);
-  color: white;
-  border: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: transform 0.15s, box-shadow 0.15s;
-  font-size: 1.1rem;
-}
-
-.btnCallEnd:hover {
-  transform: scale(1.05);
-  box-shadow: 0 4px 16px rgba(239, 68, 68, 0.4);
-}
-
-/* ===== Warning / Error Messages ===== */
+/* ===== Warning / Error ===== */
 .warningMessage {
-  padding: 10px 14px;
+  padding: 8px 12px;
   background: rgba(251, 191, 36, 0.1);
   border: 1px solid rgba(251, 191, 36, 0.3);
   border-radius: 8px;
   color: #fbbf24;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   text-align: center;
-  line-height: 1.4;
+  margin-top: 8px;
 }
 
 .errorMessage {
-  padding: 10px 14px;
+  padding: 8px 12px;
   background: rgba(239, 68, 68, 0.1);
   border: 1px solid rgba(239, 68, 68, 0.3);
   border-radius: 8px;
   color: #ef4444;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   text-align: center;
-  line-height: 1.4;
+  margin-top: 8px;
 }
 
 @keyframes fadeIn {
