@@ -36,6 +36,7 @@ public class ChatController {
         Message message = Message.builder()
                 .sessionId(sessionId)
                 .senderId(chatMessage.getSenderId())
+                .senderName(chatMessage.getSenderName())
                 .content(chatMessage.getContent())
                 .timestamp(chatMessage.getTimestamp())
                 .build();
@@ -52,6 +53,7 @@ public class ChatController {
                 .map(msg -> ChatMessageDto.builder()
                         .sessionId(msg.getSessionId())
                         .senderId(msg.getSenderId())
+                        .senderName(msg.getSenderName())
                         .content(msg.getContent())
                         .timestamp(msg.getTimestamp())
                         .build())
