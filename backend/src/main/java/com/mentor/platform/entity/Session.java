@@ -31,4 +31,11 @@ public class Session {
     private LocalDateTime startTime;
 
     private LocalDateTime endTime;
+
+    @Column(nullable = false, columnDefinition = "boolean default true")
+    @Builder.Default
+    private boolean mentorPresent = true;
+
+    @Column(columnDefinition = "boolean default false")
+    private boolean studentPresent;
 }

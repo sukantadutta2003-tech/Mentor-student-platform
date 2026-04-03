@@ -19,4 +19,6 @@ public class SessionResponse {
     private SessionStatus status;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
+    private String mentorUsername;
+    private String studentUsername;
 }

@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "../../context/AuthContext";
-import { getSession, getSessionMessages, endSession } from "../../lib/api";
+import { getSession, getSessionMessages, leaveSession } from "../../lib/api";
 import { Client } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
 import dynamic from "next/dynamic";
@@ -29,6 +29,8 @@ interface SessionData {
   status: "ACTIVE" | "COMPLETED";
   startTime: string;
   endTime: string | null;
+  mentorUsername?: string;
+  studentUsername?: string;
 }
 
 export default function SessionRoomPage() {
@@ -43,7 +45,7 @@ export default function SessionRoomPage() {
   const [code, setCode] = useState("// Start coding here...\n");
   const [language, setLanguage] = useState("javascript");
   const [connected, setConnected] = useState(false);
-  const [activeTab, setActiveTab] = useState<"chat" | "video">("chat");
+  const [activeTab, setActiveTab] = useState<"chat" | "video" | "participants">("chat");
 
   const stompClient = useRef<Client | null>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
@@ -148,13 +150,10 @@ export default function SessionRoomPage() {
     }
   };
 
-  const handleEndSession = async () => {
-    try {
-      await endSession(sessionId);
-      router.push("/dashboard");
-    } catch {
-      console.error("Failed to end session");
-    }
+
+  const navigateDashboard = () => {
+    leaveSession(sessionId).catch(() => {});
+    router.push("/dashboard");
   };
 
   if (isLoading || !user || !session) return null;
@@ -171,13 +170,7 @@ export default function SessionRoomPage() {
             ←
           </button>
           <span className={styles.headerLogo}>MentorConnect</span>
-          <span
-            className={`${styles.statusBadge} ${
-              session.status === "ACTIVE" ? styles.statusActive : styles.statusCompleted
-            }`}
-          >
-            {session.status}
-          </span>
+
         </div>
         <div className={styles.headerRight}>
           <span className={styles.sessionIdBadge}>
@@ -243,6 +236,7 @@ export default function SessionRoomPage() {
                 padding: { top: 16 },
                 scrollBeyondLastLine: false,
                 wordWrap: "on",
+                automaticLayout: true,
                 fontFamily: "var(--font-geist-mono), monospace",
               }}
             />
@@ -252,13 +246,13 @@ export default function SessionRoomPage() {
         {/* Right Sidebar: Chat / Video */}
         <div className={styles.sidebar}>
           <div className={styles.tabSwitch}>
-            {(["chat", "video"] as const).map((tab) => (
+            {(["chat", "video", "participants"] as const).map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
                 className={`${styles.tabBtn} ${activeTab === tab ? styles.tabBtnActive : ""}`}
               >
-                {tab === "chat" ? "💬 Chat" : "🎥 Video"}
+                {tab === "chat" ? "Chat" : tab === "video" ? "Video" : "Participants"}
               </button>
             ))}
           </div>
@@ -269,7 +263,7 @@ export default function SessionRoomPage() {
               <div className={styles.chatMessages}>
                 {messages.length === 0 && (
                   <p className={styles.chatEmpty}>
-                    No messages yet. Say hello! 👋
+                    No messages yet. Say hello!
                   </p>
                 )}
                 {messages.map((msg, i) => {
@@ -321,8 +315,29 @@ export default function SessionRoomPage() {
                 sessionId={sessionId}
                 token={user.token}
                 userId={user.id}
-                onLeave={() => router.push("/dashboard")}
+                onLeave={navigateDashboard}
               />
+            </div>
+          )}
+
+          {/* Participants Panel */}
+          {activeTab === "participants" && (
+            <div className={styles.participantsPanel}>
+              <h4 className={styles.membersTitle}>Participants ({session.studentUsername ? 2 : 1})</h4>
+              <div className={styles.memberList}>
+                <div className={styles.memberItem}>
+                  <span className={styles.memberName}>{session.mentorUsername}</span>
+                  <span className={styles.memberRole}>Mentor</span>
+                </div>
+                {session.studentUsername ? (
+                  <div className={styles.memberItem}>
+                    <span className={styles.memberName}>{session.studentUsername}</span>
+                    <span className={styles.memberRole}>Student</span>
+                  </div>
+                ) : (
+                  <div className={styles.memberItemWaiting}>Waiting for student...</div>
+                )}
+              </div>
             </div>
           )}
         </div>

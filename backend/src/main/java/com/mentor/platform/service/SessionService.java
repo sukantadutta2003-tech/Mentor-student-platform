@@ -59,9 +59,16 @@ public class SessionService {
 
         if (currentUser.getRole() == Role.STUDENT && session.getStudentId() == null) {
             session.setStudentId(currentUser.getId());
+            session.setStudentPresent(true);
             session = sessionRepository.save(session);
         } else if (currentUser.getRole() == Role.STUDENT && !session.getStudentId().equals(currentUser.getId())) {
              throw new RuntimeException("Session is already occupied by another student");
+        } else if (currentUser.getRole() == Role.STUDENT && session.getStudentId().equals(currentUser.getId())) {
+             session.setStudentPresent(true);
+             session = sessionRepository.save(session);
+        } else if (currentUser.getRole() == Role.MENTOR && session.getMentorId().equals(currentUser.getId())) {
+             session.setMentorPresent(true);
+             session = sessionRepository.save(session);
         }
 
         return mapToResponse(session);
@@ -74,6 +81,7 @@ public class SessionService {
     }
 
     public SessionResponse endSession(String sessionId) {
+        // Keeping this for explicit ends if needed
         Session session = sessionRepository.findById(sessionId)
                 .orElseThrow(() -> new RuntimeException("Session not found"));
         
@@ -85,7 +93,33 @@ public class SessionService {
 
         session.setStatus(SessionStatus.COMPLETED);
         session.setEndTime(LocalDateTime.now());
+        session.setMentorPresent(false);
+        session.setStudentPresent(false);
         
+        Session savedSession = sessionRepository.save(session);
+        return mapToResponse(savedSession);
+    }
+
+    public SessionResponse leaveSession(String sessionId) {
+        Session session = sessionRepository.findById(sessionId)
+                .orElseThrow(() -> new RuntimeException("Session not found"));
+        
+        User currentUser = getCurrentUser();
+        
+        if (currentUser.getId().equals(session.getMentorId())) {
+            session.setMentorPresent(false);
+        } else if (currentUser.getId().equals(session.getStudentId())) {
+            session.setStudentPresent(false);
+        } else {
+            throw new RuntimeException("Not authorized to leave this session");
+        }
+
+        // If both left, complete session
+        if (!session.isMentorPresent() && !session.isStudentPresent()) {
+            session.setStatus(SessionStatus.COMPLETED);
+            session.setEndTime(LocalDateTime.now());
+        }
+
         Session savedSession = sessionRepository.save(session);
         return mapToResponse(savedSession);
     }
@@ -106,10 +140,20 @@ public class SessionService {
     }
 
     private SessionResponse mapToResponse(Session session) {
+        String mentorUsername = userRepository.findById(session.getMentorId())
+                .map(User::getUsername).orElse("Unknown Mentor");
+        String studentUsername = null;
+        if (session.getStudentId() != null) {
+            studentUsername = userRepository.findById(session.getStudentId())
+                    .map(User::getUsername).orElse("Unknown Student");
+        }
+
         return SessionResponse.builder()
                 .id(session.getId())
                 .mentorId(session.getMentorId())
                 .studentId(session.getStudentId())
+                .mentorUsername(mentorUsername)
+                .studentUsername(studentUsername)
                 .status(session.getStatus())
                 .startTime(session.getStartTime())
                 .endTime(session.getEndTime())

@@ -37,6 +37,8 @@ export const joinSession = (sessionId: string) =>
   api.post("/sessions/join", { sessionId });
 export const endSession = (sessionId: string) =>
   api.post(`/sessions/${sessionId}/end`);
+export const leaveSession = (sessionId: string) =>
+  api.post(`/sessions/${sessionId}/leave`);
 export const getSession = (sessionId: string) =>
   api.get(`/sessions/${sessionId}`);
 export const getMySessions = () => api.get("/sessions/my");

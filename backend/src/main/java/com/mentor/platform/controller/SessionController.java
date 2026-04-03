@@ -27,9 +27,14 @@ public class SessionController {
         return ResponseEntity.ok(sessionService.joinSession(request.getSessionId()));
     }
 
-    @PostMapping("/{id}/end")
-    public ResponseEntity<SessionResponse> endSession(@PathVariable String id) {
-        return ResponseEntity.ok(sessionService.endSession(id));
+    @PostMapping("/{sessionId}/end")
+    public ResponseEntity<SessionResponse> endSession(@PathVariable String sessionId) {
+        return ResponseEntity.ok(sessionService.endSession(sessionId));
+    }
+
+    @PostMapping("/{sessionId}/leave")
+    public ResponseEntity<SessionResponse> leaveSession(@PathVariable String sessionId) {
+        return ResponseEntity.ok(sessionService.leaveSession(sessionId));
     }
 
     @GetMapping("/{id}")

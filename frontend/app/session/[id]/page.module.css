@@ -109,8 +109,15 @@
 .mainArea {
   flex: 1;
   display: grid;
-  grid-template-columns: 1fr 380px;
+  grid-template-columns: 1fr minmax(280px, 400px);
   overflow: hidden;
+}
+
+@media (max-width: 900px) {
+  .mainArea {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr 1fr;
+  }
 }
 
 /* ===== Code Editor Panel ===== */
@@ -118,6 +125,8 @@
   display: flex;
   flex-direction: column;
   border-right: 1px solid var(--border);
+  min-width: 0;
+  overflow: hidden;
 }
 
 .languageBar {
@@ -251,7 +260,11 @@
 .msgBubbleOwn {
   padding: 10px 14px;
   border-radius: 12px 12px 4px 12px;
-  background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+  background: linear-gradient(
+    135deg,
+    var(--gradient-start),
+    var(--gradient-end)
+  );
   color: var(--text-primary);
   font-size: 0.9rem;
   line-height: 1.5;
@@ -303,5 +316,61 @@
 /* ===== Video Panel ===== */
 .videoPanel {
   flex: 1;
-  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ===== Participants Panel ===== */
+.participantsPanel {
+  flex: 1;
+  padding: 20px 16px;
+  overflow-y: auto;
+}
+
+.membersTitle {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 14px;
+}
+
+.memberList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.memberItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.memberName {
+  font-size: 0.88rem;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.memberRole {
+  font-size: 0.7rem;
+  color: var(--accent);
+  background: rgba(99, 102, 241, 0.12);
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.memberItemWaiting {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-style: italic;
+  padding: 10px 14px;
 }
