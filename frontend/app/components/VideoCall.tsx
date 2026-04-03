@@ -8,6 +8,7 @@ interface VideoCallProps {
   sessionId: string;
   token: string;
   userId: number;
+  onLeave?: () => void;
 }
 
 interface DeviceInfo {
@@ -16,7 +17,7 @@ interface DeviceInfo {
   kind: string;
 }
 
-export default function VideoCall({ sessionId, token, userId }: VideoCallProps) {
+export default function VideoCall({ sessionId, token, userId, onLeave }: VideoCallProps) {
   const {
     localStream,
     remoteStream,
@@ -213,7 +214,7 @@ export default function VideoCall({ sessionId, token, userId }: VideoCallProps) 
         </div>
 
         {/* End Call */}
-        <button onClick={endCall} className={styles.btnCallEnd} title="End call">
+        <button onClick={() => { endCall(); if(onLeave) onLeave(); }} className={styles.btnCallEnd} title="End call">
           <EndCallIcon />
         </button>
       </div>

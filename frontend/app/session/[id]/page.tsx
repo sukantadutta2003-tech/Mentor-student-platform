@@ -189,20 +189,6 @@ export default function SessionRoomPage() {
           >
             Copy ID
           </button>
-          {session.status === "ACTIVE" && (
-            user.role === "MENTOR" ? (
-              <button onClick={handleEndSession} className={styles.endSessionButton}>
-                End Session
-              </button>
-            ) : (
-              <button
-                onClick={() => router.push("/dashboard")}
-                className={styles.leaveSessionButton}
-              >
-                Leave Session
-              </button>
-            )
-          )}
         </div>
       </header>
 
@@ -335,6 +321,7 @@ export default function SessionRoomPage() {
                 sessionId={sessionId}
                 token={user.token}
                 userId={user.id}
+                onLeave={() => router.push("/dashboard")}
               />
             </div>
           )}
