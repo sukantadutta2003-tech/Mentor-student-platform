@@ -24,15 +24,33 @@ export function useWebRTC({ sessionId, token, userId }: UseWebRTCOptions) {
   const localStreamRef = useRef<MediaStream | null>(null);
   const remoteStreamRef = useRef<MediaStream>(new MediaStream());
   const makingOffer = useRef(false);
-  const isSettingRemoteDescription = useRef(false);
+  const stompConnected = useRef(false);
 
+  // STUN + TURN servers for NAT traversal
+  // TURN is critical when peers are on different networks (WiFi + mobile data)
   const ICE_SERVERS: RTCConfiguration = {
     iceServers: [
       { urls: "stun:stun.l.google.com:19302" },
       { urls: "stun:stun1.l.google.com:19302" },
+      {
+        urls: "turn:openrelay.metered.ca:80",
+        username: "openrelayproject",
+        credential: "openrelayproject",
+      },
+      {
+        urls: "turn:openrelay.metered.ca:443",
+        username: "openrelayproject",
+        credential: "openrelayproject",
+      },
+      {
+        urls: "turn:openrelay.metered.ca:443?transport=tcp",
+        username: "openrelayproject",
+        credential: "openrelayproject",
+      },
     ],
   };
 
+  // Send signal via the stored STOMP client
   const sendSignal = useCallback(
     (type: string, payload: unknown) => {
       if (stompClient.current?.connected) {
@@ -49,6 +67,24 @@ export function useWebRTC({ sessionId, token, userId }: UseWebRTCOptions) {
     },
     [sessionId, userId]
   );
+
+  // Explicitly create and send an offer
+  const createAndSendOffer = useCallback(async () => {
+    const pc = peerConnection.current;
+    if (!pc || !stompClient.current?.connected) return;
+    if (pc.signalingState === "closed") return;
+
+    try {
+      makingOffer.current = true;
+      const offer = await pc.createOffer({ iceRestart: true });
+      await pc.setLocalDescription(offer);
+      sendSignal("offer", pc.localDescription);
+    } catch (err) {
+      console.error("Error creating offer:", err);
+    } finally {
+      makingOffer.current = false;
+    }
+  }, [sendSignal]);
 
   const createPeerConnection = useCallback(() => {
     if (peerConnection.current) {
@@ -75,24 +111,8 @@ export function useWebRTC({ sessionId, token, userId }: UseWebRTCOptions) {
       if (state === "connected" || state === "completed") {
         setIsCallActive(true);
       }
-      if (state === "disconnected" || state === "failed") {
-        // Don't fully tear down — ICE can recover from "disconnected"
-        if (state === "failed") {
-          setError("Connection lost. Please try refreshing.");
-        }
-      }
-    };
-
-    // "Perfect negotiation" pattern: handle negotiationneeded
-    pc.onnegotiationneeded = async () => {
-      try {
-        makingOffer.current = true;
-        await pc.setLocalDescription();
-        sendSignal("offer", pc.localDescription);
-      } catch (err) {
-        console.error("Error during negotiation:", err);
-      } finally {
-        makingOffer.current = false;
+      if (state === "failed") {
+        setError("Connection lost. Please try refreshing.");
       }
     };
 
@@ -102,17 +122,16 @@ export function useWebRTC({ sessionId, token, userId }: UseWebRTCOptions) {
   }, [sendSignal]);
 
   const getMediaStream = useCallback(async (): Promise<MediaStream> => {
-    // Try video + audio first
     try {
       return await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-    } catch { /* Video failed — try audio only */ }
+    } catch { /* Video failed */ }
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: false, audio: true });
       setWarning("No camera detected — joined with audio only.");
       setIsVideoOff(true);
       return stream;
-    } catch { /* Audio also failed — try video only */ }
+    } catch { /* Audio also failed */ }
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
@@ -133,13 +152,17 @@ export function useWebRTC({ sessionId, token, userId }: UseWebRTCOptions) {
       setLocalStream(stream);
 
       const pc = createPeerConnection();
-
-      // Add tracks to peer connection — this triggers onnegotiationneeded
-      // which will automatically create and send the offer
       stream.getTracks().forEach((track) => pc.addTrack(track, stream));
 
-      // Notify the other peer that we're ready
-      sendSignal("ready", {});
+      // If STOMP is already connected, send offer now
+      // Otherwise, the STOMP onConnect handler will send it
+      if (stompConnected.current) {
+        // Small delay to ensure subscription is active on both sides
+        setTimeout(() => {
+          createAndSendOffer();
+          sendSignal("ready", {});
+        }, 300);
+      }
     } catch (err) {
       console.error("Failed to start call:", err);
       if (err instanceof DOMException) {
@@ -154,7 +177,7 @@ export function useWebRTC({ sessionId, token, userId }: UseWebRTCOptions) {
         setError("Failed to start call. Please try again.");
       }
     }
-  }, [createPeerConnection, sendSignal, getMediaStream]);
+  }, [createPeerConnection, sendSignal, getMediaStream, createAndSendOffer]);
 
   const endCall = useCallback(() => {
     if (peerConnection.current) {
@@ -189,14 +212,17 @@ export function useWebRTC({ sessionId, token, userId }: UseWebRTCOptions) {
     }
   }, []);
 
-  // Connect to signaling server and handle WebRTC signals
+  // Single useEffect: connect STOMP and handle all signaling
   useEffect(() => {
     const client = new Client({
-      webSocketFactory: () => new SockJS(process.env.NEXT_PUBLIC_WS_URL || "http://localhost:8080/ws"),
+      webSocketFactory: () =>
+        new SockJS(process.env.NEXT_PUBLIC_WS_URL || "http://localhost:8080/ws"),
       connectHeaders: {
         Authorization: `Bearer ${token}`,
       },
       onConnect: () => {
+        stompConnected.current = true;
+
         client.subscribe(
           `/topic/session/${sessionId}/signal`,
           async (message) => {
@@ -208,68 +234,109 @@ export function useWebRTC({ sessionId, token, userId }: UseWebRTCOptions) {
             const pc = peerConnection.current;
 
             if (signal.type === "ready") {
-              // The other peer is ready — if we already have a connection,
-              // re-trigger an offer by restarting ICE
+              // The other peer announced itself — send them an offer
               if (pc && localStreamRef.current) {
-                pc.restartIce();
+                // Small delay so their subscription is fully ready
+                setTimeout(async () => {
+                  try {
+                    makingOffer.current = true;
+                    const offer = await pc.createOffer({ iceRestart: true });
+                    if (pc.signalingState !== "closed") {
+                      await pc.setLocalDescription(offer);
+                      sendSignal("offer", pc.localDescription);
+                    }
+                  } catch (err) {
+                    console.error("Error sending offer on ready:", err);
+                  } finally {
+                    makingOffer.current = false;
+                  }
+                }, 500);
               }
-            } else if (signal.type === "offer") {
-              if (!pc) return;
+              return;
+            }
 
-              // "Perfect negotiation" — polite peer logic
-              // We are "polite" if our userId is greater (arbitrary but consistent rule)
+            if (!pc) return;
+
+            if (signal.type === "offer") {
+              // Perfect negotiation: determine polite vs impolite peer
               const polite = userId > signal.senderId;
-              const offerCollision = makingOffer.current || pc.signalingState !== "stable";
+              const offerCollision =
+                makingOffer.current || pc.signalingState !== "stable";
 
               if (offerCollision && !polite) {
-                // Impolite peer ignores the incoming offer during collision
+                // Impolite peer ignores incoming offer during collision
                 return;
               }
 
               try {
-                isSettingRemoteDescription.current = true;
-                await pc.setRemoteDescription(new RTCSessionDescription(signal.payload));
-                isSettingRemoteDescription.current = false;
+                await pc.setRemoteDescription(
+                  new RTCSessionDescription(signal.payload)
+                );
 
-                // If we don't have tracks added yet, add them now
+                // Add tracks if not already added
                 if (localStreamRef.current && pc.getSenders().length === 0) {
-                  localStreamRef.current.getTracks().forEach((track) =>
-                    pc.addTrack(track, localStreamRef.current!)
-                  );
+                  localStreamRef.current
+                    .getTracks()
+                    .forEach((track) =>
+                      pc.addTrack(track, localStreamRef.current!)
+                    );
                 }
 
                 const answer = await pc.createAnswer();
                 await pc.setLocalDescription(answer);
                 sendSignal("answer", pc.localDescription);
               } catch (err) {
-                isSettingRemoteDescription.current = false;
                 console.error("Error handling offer:", err);
               }
             } else if (signal.type === "answer") {
-              if (pc && pc.signalingState === "have-local-offer") {
+              if (pc.signalingState === "have-local-offer") {
                 try {
-                  await pc.setRemoteDescription(new RTCSessionDescription(signal.payload));
+                  await pc.setRemoteDescription(
+                    new RTCSessionDescription(signal.payload)
+                  );
                 } catch (err) {
                   console.error("Error setting remote answer:", err);
                 }
               }
             } else if (signal.type === "ice-candidate") {
-              if (pc) {
-                try {
-                  await pc.addIceCandidate(new RTCIceCandidate(signal.payload));
-                } catch (err) {
-                  // Ignore ICE candidate errors if we're not in a state to accept them
-                  if (!isSettingRemoteDescription.current) {
-                    console.error("Error adding ICE candidate:", err);
-                  }
+              try {
+                if (pc.remoteDescription) {
+                  await pc.addIceCandidate(
+                    new RTCIceCandidate(signal.payload)
+                  );
                 }
+              } catch (err) {
+                console.error("Error adding ICE candidate:", err);
               }
             }
           }
         );
+
+        // After subscribing, announce presence and send offer if ready
+        sendSignal("ready", {});
+
+        if (peerConnection.current && localStreamRef.current) {
+          setTimeout(async () => {
+            try {
+              const pc = peerConnection.current;
+              if (!pc || pc.signalingState === "closed") return;
+              makingOffer.current = true;
+              const offer = await pc.createOffer({ iceRestart: true });
+              await pc.setLocalDescription(offer);
+              sendSignal("offer", pc.localDescription);
+            } catch (err) {
+              console.error("Error sending initial offer:", err);
+            } finally {
+              makingOffer.current = false;
+            }
+          }, 300);
+        }
       },
       onStompError: (frame) => {
         console.error("WebSocket STOMP Error:", frame);
+      },
+      onDisconnect: () => {
+        stompConnected.current = false;
       },
     });
 
@@ -277,6 +344,7 @@ export function useWebRTC({ sessionId, token, userId }: UseWebRTCOptions) {
     stompClient.current = client;
 
     return () => {
+      stompConnected.current = false;
       client.deactivate();
       endCall();
     };
