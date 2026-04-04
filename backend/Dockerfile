@@ -15,16 +15,15 @@ COPY --from=build /app/target/*.jar app.jar
 
 EXPOSE 8080
 
-# JVM flags optimized for 256MB container
-# Heap: 96MB start, 160MB max
-# Thread stacks: 256KB (saves ~15MB vs default 1MB)
-# SerialGC: lowest overhead for small heaps
-# Metaspace capped at 80MB
+# JVM flags optimized for Railway 512MB container
+# Heap: 128MB start, 256MB max
+# Metaspace: 128MB (Spring Boot + Hibernate needs ~100MB)
+# Thread stacks: 512KB
 ENTRYPOINT ["java", \
-  "-Xms96m", \
-  "-Xmx160m", \
-  "-Xss256k", \
-  "-XX:MaxMetaspaceSize=80m", \
+  "-Xms128m", \
+  "-Xmx256m", \
+  "-Xss512k", \
+  "-XX:MaxMetaspaceSize=128m", \
   "-XX:+UseSerialGC", \
   "-XX:+UseContainerSupport", \
   "-Djava.security.egd=file:/dev/./urandom", \
