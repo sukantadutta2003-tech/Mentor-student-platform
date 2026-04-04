@@ -37,6 +37,15 @@ export default function DashboardPage() {
     if (user) fetchSessions();
   }, [user]);
 
+  // Poll for session updates every 5 seconds so status changes appear in real-time
+  useEffect(() => {
+    if (!user) return;
+    const interval = setInterval(() => {
+      fetchSessions();
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [user]);
+
   const fetchSessions = async () => {
     try {
       const res = await getMySessions();
