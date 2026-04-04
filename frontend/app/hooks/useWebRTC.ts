@@ -308,7 +308,7 @@ export function useWebRTC({ sessionId, token, userId }: UseWebRTCOptions) {
       endCall();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sessionId, token, userId, createPeerConnection, sendSignal, localStream]);
+  }, [sessionId, token, userId]);
 
   return {
     localStream,
