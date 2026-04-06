@@ -55,8 +55,10 @@ export default function SessionRoomPage() {
     if (!isLoading && !user) router.push("/login");
   }, [user, isLoading, router]);
 
+  // Fetch session data initially and poll every 5 seconds for real-time updates
   useEffect(() => {
     if (!user) return;
+
     const fetchData = async () => {
       try {
         const [sessionRes, messagesRes] = await Promise.all([
@@ -70,6 +72,16 @@ export default function SessionRoomPage() {
       }
     };
     fetchData();
+
+    // Poll session data so participants/status updates appear in real-time
+    const interval = setInterval(async () => {
+      try {
+        const res = await getSession(sessionId);
+        setSession(res.data);
+      } catch { /* ignore */ }
+    }, 5000);
+
+    return () => clearInterval(interval);
   }, [sessionId, user, router]);
 
   useEffect(() => {
@@ -257,89 +269,83 @@ export default function SessionRoomPage() {
             ))}
           </div>
 
-          {/* Chat Panel */}
-          {activeTab === "chat" && (
-            <div className={styles.chatPanel}>
-              <div className={styles.chatMessages}>
-                {messages.length === 0 && (
-                  <p className={styles.chatEmpty}>
-                    No messages yet. Say hello!
-                  </p>
-                )}
-                {messages.map((msg, i) => {
-                  const isOwn = msg.senderId === user.id;
-                  return (
-                    <div key={i} className={isOwn ? styles.msgOwn : styles.msgOther}>
-                      {!isOwn && (
-                        <span className={styles.msgSender}>{msg.senderName}</span>
-                      )}
-                      <div className={isOwn ? styles.msgBubbleOwn : styles.msgBubbleOther}>
-                        {msg.content}
-                      </div>
-                      <span className={`${styles.msgTime} ${isOwn ? styles.msgTimeOwn : styles.msgTimeOther}`}>
-                        {msg.timestamp
-                          ? new Date(msg.timestamp).toLocaleTimeString([], {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })
-                          : ""}
-                      </span>
+          {/* Chat Panel — always mounted */}
+          <div className={styles.chatPanel} style={{ display: activeTab === "chat" ? "flex" : "none" }}>
+            <div className={styles.chatMessages}>
+              {messages.length === 0 && (
+                <p className={styles.chatEmpty}>
+                  No messages yet. Say hello!
+                </p>
+              )}
+              {messages.map((msg, i) => {
+                const isOwn = msg.senderId === user.id;
+                return (
+                  <div key={i} className={isOwn ? styles.msgOwn : styles.msgOther}>
+                    {!isOwn && (
+                      <span className={styles.msgSender}>{msg.senderName}</span>
+                    )}
+                    <div className={isOwn ? styles.msgBubbleOwn : styles.msgBubbleOther}>
+                      {msg.content}
                     </div>
-                  );
-                })}
-                <div ref={chatEndRef} />
-              </div>
-
-              <div className={styles.chatInputBar}>
-                <input
-                  className={`input-field ${styles.chatInput}`}
-                  placeholder="Type a message..."
-                  value={chatInput}
-                  onChange={(e) => setChatInput(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && sendChatMessage()}
-                />
-                <button
-                  className={`btn-primary ${styles.chatSendBtn}`}
-                  onClick={sendChatMessage}
-                >
-                  Send
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Video Panel */}
-          {activeTab === "video" && (
-            <div className={styles.videoPanel}>
-              <VideoCall
-                sessionId={sessionId}
-                token={user.token}
-                userId={user.id}
-                onLeave={navigateDashboard}
-              />
-            </div>
-          )}
-
-          {/* Participants Panel */}
-          {activeTab === "participants" && (
-            <div className={styles.participantsPanel}>
-              <h4 className={styles.membersTitle}>Participants ({session.studentUsername ? 2 : 1})</h4>
-              <div className={styles.memberList}>
-                <div className={styles.memberItem}>
-                  <span className={styles.memberName}>{session.mentorUsername}</span>
-                  <span className={styles.memberRole}>Mentor</span>
-                </div>
-                {session.studentUsername ? (
-                  <div className={styles.memberItem}>
-                    <span className={styles.memberName}>{session.studentUsername}</span>
-                    <span className={styles.memberRole}>Student</span>
+                    <span className={`${styles.msgTime} ${isOwn ? styles.msgTimeOwn : styles.msgTimeOther}`}>
+                      {msg.timestamp
+                        ? new Date(msg.timestamp).toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })
+                        : ""}
+                    </span>
                   </div>
-                ) : (
-                  <div className={styles.memberItemWaiting}>Waiting for student...</div>
-                )}
-              </div>
+                );
+              })}
+              <div ref={chatEndRef} />
             </div>
-          )}
+
+            <div className={styles.chatInputBar}>
+              <input
+                className={`input-field ${styles.chatInput}`}
+                placeholder="Type a message..."
+                value={chatInput}
+                onChange={(e) => setChatInput(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && sendChatMessage()}
+              />
+              <button
+                className={`btn-primary ${styles.chatSendBtn}`}
+                onClick={sendChatMessage}
+              >
+                Send
+              </button>
+            </div>
+          </div>
+
+          {/* Video Panel — always mounted so WebRTC/camera stays alive */}
+          <div className={styles.videoPanel} style={{ display: activeTab === "video" ? "flex" : "none" }}>
+            <VideoCall
+              sessionId={sessionId}
+              token={user.token}
+              userId={user.id}
+              onLeave={navigateDashboard}
+            />
+          </div>
+
+          {/* Participants Panel — always mounted */}
+          <div className={styles.participantsPanel} style={{ display: activeTab === "participants" ? "flex" : "none" }}>
+            <h4 className={styles.membersTitle}>Participants ({session.studentUsername ? 2 : 1})</h4>
+            <div className={styles.memberList}>
+              <div className={styles.memberItem}>
+                <span className={styles.memberName}>{session.mentorUsername}</span>
+                <span className={styles.memberRole}>Mentor</span>
+              </div>
+              {session.studentUsername ? (
+                <div className={styles.memberItem}>
+                  <span className={styles.memberName}>{session.studentUsername}</span>
+                  <span className={styles.memberRole}>Student</span>
+                </div>
+              ) : (
+                <div className={styles.memberItemWaiting}>Waiting for student...</div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </div>
