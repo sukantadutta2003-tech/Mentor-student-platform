@@ -2,6 +2,16 @@
 
 A full-stack real-time mentorship platform where mentors and students connect through **live video calls**, **collaborative code editing**, and **instant messaging**.
 
+## 🚀 Live Demo
+- Frontend: https://mentor-student-platform.vercel.app/
+### ⚠️ Important Note
+- The backend is hosted on a free-tier cloud service. After a period of inactivity, the server may enter a sleep state.
+- The first request can take 30–60 seconds while the service wakes up. Subsequent requests are processed normally.
+### 📝 Demo Instructions
+- Open the frontend application.
+- If this is the first request after inactivity, please wait a few moments for the backend to initialize.
+- Once the server is active, the application will function normally.
+
 ## ✨ Features
 
 - **🔐 JWT Authentication** — Secure registration/login with role-based access (Mentor/Student)
