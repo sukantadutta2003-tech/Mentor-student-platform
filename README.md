@@ -101,7 +101,7 @@ Frontend runs on `http://localhost:3000`
 | `CORS_ORIGINS` | Allowed frontend origins | `http://localhost:3000` |
 | `PORT` | Server port | `8080` |
 
-> **Note:** If your local PostgreSQL username or password is not `primus`/`password`, you can run the backend with your credentials:
+> **Note:** Change the DB_USERNAME and DB_PASSWORD variables to your local PostgreSQL username and password:
 > ```bash
 > DB_USERNAME=your_username DB_PASSWORD=your_password ./mvnw spring-boot:run
 > ```
