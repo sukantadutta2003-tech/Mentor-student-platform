@@ -95,6 +95,8 @@ Frontend runs on `http://localhost:3000`
 | `DATABASE_URL` | PostgreSQL connection URL | `jdbc:postgresql://localhost:5432/mentorplatform` |
 | `DB_USERNAME` | Database username | `primus` |
 | `DB_PASSWORD` | Database password | `password` |
+| `DB_SSLMODE` | SSL mode for DB connection | `disable` |
+| `DB_SCHEMA` | Database schema name | `mentorplatform` |
 | `JWT_SECRET` | JWT signing secret (Base64) | (built-in dev key) |
 | `CORS_ORIGINS` | Allowed frontend origins | `http://localhost:3000` |
 | `PORT` | Server port | `8080` |
