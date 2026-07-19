@@ -108,15 +108,33 @@ Frontend runs on `http://localhost:3000`
 
 ## 🐳 Docker
 
+### 1. Build the image
 ```bash
 cd backend
 docker build -t mentorconnect-api .
+```
+
+### 2. Run the container
+To run the container locally and connect to a PostgreSQL database on your host machine:
+
+**On Windows / macOS:**
+```bash
 docker run -p 8080:8080 \
-  -e DATABASE_URL=jdbc:postgresql://host:5432/mentorplatform \
-  -e DB_USERNAME=user \
-  -e DB_PASSWORD=pass \
+  -e DATABASE_URL=jdbc:postgresql://host.docker.internal:5432/mentorplatform \
+  -e DB_USERNAME=postgres \
+  -e DB_PASSWORD=password \
   mentorconnect-api
 ```
+
+**On Linux:**
+```bash
+docker run -p 8080:8080 \
+  -e DATABASE_URL=jdbc:postgresql://172.17.0.1:5432/mentorplatform \
+  -e DB_USERNAME=postgres \
+  -e DB_PASSWORD=password \
+  mentorconnect-api
+```
+*(Note: Replace `172.17.0.1` with your gateway IP address from `ip addr show docker0`)*
 
 ## 📡 API Endpoints
 
